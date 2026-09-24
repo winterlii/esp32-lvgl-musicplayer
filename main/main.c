@@ -29,7 +29,7 @@
 #define EXAMPLE_LCD_CMD_BITS   8
 #define EXAMPLE_LCD_PARAM_BITS 8
 
-// 按钮点击回调，兼容旧版LVGL
+// 按钮点击回调
 static void btn_click_cb(lv_event_t * e)
 {
     lv_obj_t * btn = lv_event_get_target(e);
@@ -134,9 +134,14 @@ void app_main(void)
     lv_label_set_text(btn_label, "Press Enter");
     lv_obj_center(btn_label);
 
-    // 将label作为user_data传给回调
     lv_obj_add_event_cb(btn, btn_click_cb, LV_EVENT_CLICKED, btn_label);
     // ==========================================================
+
+    // ========== 新增：创建LVGL group，导航按键必须依赖group ==========
+    lv_group_t * group = lv_group_create();
+    lv_group_add_obj(group, btn);   // 把按钮加入group
+    lv_group_set_default(group);
+    // =================================================================
 
     // 三个导航按键：prev(GPIO5), next(GPIO6), enter(GPIO7)
     const button_gpio_config_t bsp_button_config[] = {
@@ -160,7 +165,10 @@ void app_main(void)
         .button_enter = enter_btn_handle
     };
     lv_indev_t* buttons_handle = lvgl_port_add_navigation_buttons(&btns);
-    (void)buttons_handle; //消除未使用变量警告
+    (void)buttons_handle;
+
+    // 将group绑定到导航输入设备
+    lv_indev_set_group(buttons_handle, group);
 
     while(1)
     {
