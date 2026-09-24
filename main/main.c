@@ -96,12 +96,10 @@ void app_main(void)
     esp_lcd_panel_handle_t lcd_panel_handle;
     ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &panel_config, &lcd_panel_handle));
 
-    // ST7789面板复位与初始化
     ESP_ERROR_CHECK(esp_lcd_panel_reset(lcd_panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(lcd_panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(lcd_panel_handle, true));
 
-    // LVGL显示配置 PSRAM全屏buffer
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle,
         .panel_handle = lcd_panel_handle,
@@ -124,40 +122,49 @@ void app_main(void)
     };
     lv_disp_t * disp_handle = lvgl_port_add_disp(&disp_cfg);
 
-    // ===================== LVGL Button UI =====================
-    lv_obj_t * btn = lv_btn_create(lv_scr_act());
-    lv_obj_set_size(btn, 140, 60);
-    lv_obj_center(btn);
-    lv_obj_set_style_radius(btn, 10, 0);
+    // ========== UI：两个按钮 ==========
+    lv_obj_t * btn1 = lv_btn_create(lv_scr_act());
+    lv_obj_set_size(btn1, 140, 60);
+    lv_obj_align(btn1, LV_ALIGN_CENTER, 0, -40);
+    lv_obj_set_style_radius(btn1, 10, 0);
+    lv_obj_t * label1 = lv_label_create(btn1);
+    lv_label_set_text(label1, "Button1");
+    lv_obj_center(label1);
+    lv_obj_add_event_cb(btn1, btn_click_cb, LV_EVENT_CLICKED, label1);
 
-    lv_obj_t * btn_label = lv_label_create(btn);
-    lv_label_set_text(btn_label, "Press Enter");
-    lv_obj_center(btn_label);
+    lv_obj_t * btn2 = lv_btn_create(lv_scr_act());
+    lv_obj_set_size(btn2, 140, 60);
+    lv_obj_align(btn2, LV_ALIGN_CENTER, 0, 40);
+    lv_obj_set_style_radius(btn2, 10, 0);
+    lv_obj_t * label2 = lv_label_create(btn2);
+    lv_label_set_text(label2, "Button2");
+    lv_obj_center(label2);
+    lv_obj_add_event_cb(btn2, btn_click_cb, LV_EVENT_CLICKED, label2);
 
-    lv_obj_add_event_cb(btn, btn_click_cb, LV_EVENT_CLICKED, btn_label);
-    // ==========================================================
-
-    // ========== 新增：创建LVGL group，导航按键必须依赖group ==========
+    // ========== LVGL group ==========
     lv_group_t * group = lv_group_create();
-    lv_group_add_obj(group, btn);   // 把按钮加入group
+    lv_group_add_obj(group, btn1);
+    lv_group_add_obj(group, btn2);
     lv_group_set_default(group);
-    // =================================================================
 
-    // 三个导航按键：prev(GPIO5), next(GPIO6), enter(GPIO7)
-    const button_gpio_config_t bsp_button_config[] = {
-        {.gpio_num = GPIO_NUM_5, .active_level = 0},
-        {.gpio_num = GPIO_NUM_6, .active_level = 0},
-        {.gpio_num = GPIO_NUM_7, .active_level = 0},
-    };
+    // ===================== 按键配置 =====================
+    // GPIO7: prev 上一个
+    // GPIO8: next 下一个
+    // GPIO6: enter 选中点击
+    const button_gpio_config_t btn_prev_cfg = {.gpio_num = GPIO_NUM_7, .active_level = 0};
+    const button_gpio_config_t btn_next_cfg = {.gpio_num = GPIO_NUM_8, .active_level = 0};
+    const button_gpio_config_t btn_enter_cfg = {.gpio_num = GPIO_NUM_6, .active_level = 0};
+
     const button_config_t btn_cfg = {0};
     button_handle_t prev_btn_handle = NULL;
     button_handle_t next_btn_handle = NULL;
     button_handle_t enter_btn_handle = NULL;
 
-    iot_button_new_gpio_device(&btn_cfg, &bsp_button_config[0], &prev_btn_handle);
-    iot_button_new_gpio_device(&btn_cfg, &bsp_button_config[1], &next_btn_handle);
-    iot_button_new_gpio_device(&btn_cfg, &bsp_button_config[2], &enter_btn_handle);
+    iot_button_new_gpio_device(&btn_cfg, &btn_prev_cfg, &prev_btn_handle);
+    iot_button_new_gpio_device(&btn_cfg, &btn_next_cfg, &next_btn_handle);
+    iot_button_new_gpio_device(&btn_cfg, &btn_enter_cfg, &enter_btn_handle);
 
+    // 导航输入设备绑定
     const lvgl_port_nav_btns_cfg_t btns = {
         .disp = disp_handle,
         .button_prev = prev_btn_handle,
@@ -166,8 +173,6 @@ void app_main(void)
     };
     lv_indev_t* buttons_handle = lvgl_port_add_navigation_buttons(&btns);
     (void)buttons_handle;
-
-    // 将group绑定到导航输入设备
     lv_indev_set_group(buttons_handle, group);
 
     while(1)
