@@ -10,6 +10,7 @@
 #include "lvgl.h"
 #include "button_gpio.h"
 #include "sdkconfig.h"
+#include "ui.h"
 
 #define PARALLEL_LINES 16
 #define DISP_WIDTH     240
@@ -73,12 +74,12 @@ static void btn_play_cb(lv_event_t * e)
     lv_obj_t * txt = lv_obj_get_child(g_btn_play, 0);
     if(is_playing)
     {
-        lv_label_set_text(txt, "暂停");
+        lv_label_set_text(txt, "pause");
         play_timer = lv_timer_create(play_timer_cb, 1000, NULL);
     }
     else
     {
-        lv_label_set_text(txt, "播放");
+        lv_label_set_text(txt, "play");
         if(play_timer != NULL)
         {
             lv_timer_del(play_timer);
@@ -109,6 +110,25 @@ static void btn_next_cb(lv_event_t * e)
     snprintf(time_buf, sizeof(time_buf), "%02lu:%02lu / %02lu:%02lu",
         cur_time/60, cur_time%60, total_time/60, total_time%60);
     lv_label_set_text(label_time, time_buf);
+}
+
+static void collect_focusable(lv_obj_t *obj, lv_group_t *group)
+{
+    if(obj == NULL) return;
+
+    // LVGL9新API：判断可点击 && 没有隐藏
+    if( lv_obj_is_clickable(obj) && !lv_obj_is_hidden(obj) )
+    {
+        lv_group_add_obj(group, obj);
+    }
+
+    // LVGL9正确遍历子控件：按索引循环
+    uint32_t child_cnt = lv_obj_get_child_count(obj);
+    for(uint32_t i = 0; i < child_cnt; i++)
+    {
+        lv_obj_t *child = lv_obj_get_child(obj, i);
+        collect_focusable(child, group);
+    }
 }
 
 void app_main(void)
@@ -182,6 +202,44 @@ void app_main(void)
     };
     lv_disp_t * disp_handle = lvgl_port_add_disp(&disp_cfg);
 
+    lv_init();
+    ui_init(); // 加载全部3个屏幕
+    lv_disp_load_scr(ui_Screen1); // 默认启动进入Screen1
+
+    lv_group_t * group = lv_group_create();
+    lv_group_set_default(group);
+
+const button_config_t btn_cfg = {0}; // 基础button配置，这个是第1参数
+const button_gpio_config_t btn_prev_cfg = {.gpio_num = GPIO_NUM_7, .active_level = 0};
+const button_gpio_config_t btn_next_cfg = {.gpio_num = GPIO_NUM_8, .active_level = 0};
+const button_gpio_config_t btn_enter_cfg = {.gpio_num = GPIO_NUM_6, .active_level = 0};
+
+button_handle_t prev_btn_handle = NULL;
+button_handle_t next_btn_handle = NULL;
+button_handle_t enter_btn_handle = NULL;
+
+// 修正！第一个参数统一传 &btn_cfg
+iot_button_new_gpio_device(&btn_cfg, &btn_prev_cfg, &prev_btn_handle);
+iot_button_new_gpio_device(&btn_cfg, &btn_next_cfg, &next_btn_handle);
+iot_button_new_gpio_device(&btn_cfg, &btn_enter_cfg, &enter_btn_handle);
+
+    const lvgl_port_nav_btns_cfg_t btns = {
+        .disp = disp_handle,
+        .button_prev = prev_btn_handle,
+        .button_next = next_btn_handle,
+        .button_enter = enter_btn_handle
+    };
+    lv_indev_t* buttons_handle = lvgl_port_add_navigation_buttons(&btns);
+    lv_indev_set_group(buttons_handle, group);
+
+    // 【重点】切屏幕后调用 group_auto_refresh(目标屏幕句柄)
+    // 示例：进入Screen1
+    lv_disp_load_scr(ui_Screen1);
+    lv_group_remove_all_objs(group); // 清空旧屏幕控件
+    collect_focusable(ui_Screen1, group);  // 递归扫描当前屏幕，自动加入所有focusable按钮
+
+
+/*
     // ========== 播放器UI ==========
     label_title = lv_label_create(lv_scr_act());
     lv_label_set_text(label_title, "Music Player");
@@ -190,14 +248,14 @@ void app_main(void)
 
     slider_progress = lv_slider_create(lv_scr_act());
     lv_obj_set_size(slider_progress, 200, 10);
-    lv_obj_align(slider_progress, LV_ALIGN_TOP_MID, 0, 45);
+    lv_obj_align_to(slider_progress, label_title, LV_ALIGN_TOP_MID, 0, 25);
     lv_slider_set_range(slider_progress, 0, total_time);
     lv_slider_set_value(slider_progress, 0, LV_ANIM_OFF);
     lv_obj_add_event_cb(slider_progress, slider_progress_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     label_time = lv_label_create(lv_scr_act());
     lv_label_set_text(label_time, "00:00 / 03:00");
-    lv_obj_align(label_time, LV_ALIGN_TOP_MID, 0, 70);
+    lv_obj_align_to(label_time, slider_progress, LV_ALIGN_BOTTOM_MID, 0, 35);
 
     lv_obj_t * btn_prev = lv_btn_create(lv_scr_act());
     lv_obj_set_size(btn_prev, 60, 40);
@@ -264,4 +322,5 @@ void app_main(void)
     {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
+*/
 }

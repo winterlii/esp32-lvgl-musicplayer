@@ -1,8 +1,17 @@
 idf_component_register(
         SRCS 
             "main.c"
+            "app_gui/ui_helpers.c"
+            "app_gui/ui.c"
+            "app_gui/screens/ui_Screen1.c"
+            "app_gui/screens/ui_Screen2.c"
+            "app_gui/screens/ui_Screen3.c"
+            "app_gui/components/ui_comp.c"
+            "app_gui/components/ui_comp_hook.c"
+            "app_gui/components/ui_comp_reader.c"
         INCLUDE_DIRS
             "."
             "./setup/include"
             "./device/include"
-            "./softdrv/include")
+            "./softdrv/include"
+            "./app_gui")
