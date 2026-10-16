@@ -10,6 +10,10 @@ lv_obj_t * ui_Button4 = NULL;
 lv_obj_t * ui_Label4 = NULL;
 lv_obj_t * ui_Button5 = NULL;
 lv_obj_t * ui_Label5 = NULL;
+lv_obj_t * ui_Button2 = NULL;
+lv_obj_t * ui_Label1 = NULL;
+lv_obj_t * ui_Button3 = NULL;
+lv_obj_t * ui_Label2 = NULL;
 // event funtions
 void ui_event_Button4(lv_event_t * e)
 {
@@ -29,6 +33,24 @@ void ui_event_Button5(lv_event_t * e)
     }
 }
 
+void ui_event_Button2(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_Screen4, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_Screen4_screen_init);
+    }
+}
+
+void ui_event_Button3(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_Screen5, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_Screen5_screen_init);
+    }
+}
+
 // build funtions
 
 void ui_Screen1_screen_init(void)
@@ -39,7 +61,7 @@ void ui_Screen1_screen_init(void)
     ui_Button4 = lv_button_create(ui_Screen1);
     lv_obj_set_width(ui_Button4, 100);
     lv_obj_set_height(ui_Button4, 50);
-    lv_obj_set_x(ui_Button4, 0);
+    lv_obj_set_x(ui_Button4, -60);
     lv_obj_set_y(ui_Button4, -66);
     lv_obj_set_align(ui_Button4, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_Button4, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
@@ -54,8 +76,8 @@ void ui_Screen1_screen_init(void)
     ui_Button5 = lv_button_create(ui_Screen1);
     lv_obj_set_width(ui_Button5, 100);
     lv_obj_set_height(ui_Button5, 50);
-    lv_obj_set_x(ui_Button5, 0);
-    lv_obj_set_y(ui_Button5, 26);
+    lv_obj_set_x(ui_Button5, 55);
+    lv_obj_set_y(ui_Button5, -65);
     lv_obj_set_align(ui_Button5, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_Button5, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_remove_flag(ui_Button5, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
@@ -66,8 +88,40 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_align(ui_Label5, LV_ALIGN_CENTER);
     lv_label_set_text(ui_Label5, "MP3");
 
+    ui_Button2 = lv_button_create(ui_Screen1);
+    lv_obj_set_width(ui_Button2, 100);
+    lv_obj_set_height(ui_Button2, 50);
+    lv_obj_set_x(ui_Button2, -60);
+    lv_obj_set_y(ui_Button2, 5);
+    lv_obj_set_align(ui_Button2, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_Button2, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_remove_flag(ui_Button2, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_Label1 = lv_label_create(ui_Button2);
+    lv_obj_set_width(ui_Label1, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label1, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Label1, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Label1, "wifi con");
+
+    ui_Button3 = lv_button_create(ui_Screen1);
+    lv_obj_set_width(ui_Button3, 100);
+    lv_obj_set_height(ui_Button3, 50);
+    lv_obj_set_x(ui_Button3, 55);
+    lv_obj_set_y(ui_Button3, 5);
+    lv_obj_set_align(ui_Button3, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_Button3, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_remove_flag(ui_Button3, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_Label2 = lv_label_create(ui_Button3);
+    lv_obj_set_width(ui_Label2, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label2, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Label2, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Label2, "picture");
+
     lv_obj_add_event_cb(ui_Button4, ui_event_Button4, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Button5, ui_event_Button5, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Button2, ui_event_Button2, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Button3, ui_event_Button3, LV_EVENT_ALL, NULL);
 
 }
 
@@ -81,5 +135,9 @@ void ui_Screen1_screen_destroy(void)
     ui_Label4 = NULL;
     ui_Button5 = NULL;
     ui_Label5 = NULL;
+    ui_Button2 = NULL;
+    ui_Label1 = NULL;
+    ui_Button3 = NULL;
+    ui_Label2 = NULL;
 
 }

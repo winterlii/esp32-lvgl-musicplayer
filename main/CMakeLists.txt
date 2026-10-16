@@ -6,6 +6,8 @@ idf_component_register(
             "app_gui/screens/ui_Screen1.c"
             "app_gui/screens/ui_Screen2.c"
             "app_gui/screens/ui_Screen3.c"
+            "app_gui/screens/ui_Screen4.c"
+            "app_gui/screens/ui_Screen5.c"
             "app_gui/components/ui_comp.c"
             "app_gui/components/ui_comp_hook.c"
             "app_gui/components/ui_comp_reader.c"
